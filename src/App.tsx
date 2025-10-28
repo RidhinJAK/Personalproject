@@ -11,6 +11,10 @@ import Contact from './pages/Contact';
 import Dashboard from './pages/Dashboard';
 import Gratitude from './pages/Gratitude';
 import Insights from './pages/Insights';
+import Auth from './pages/Auth';
+import AIChat from './pages/AIChat';
+import BreathingExercise from './pages/BreathingExercise';
+import Journal from './pages/Journal';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -22,11 +26,11 @@ function AppContent() {
     }
   }, [user]);
 
-  const protectedPages = ['dashboard', 'gratitude', 'insights'];
+  const protectedPages = ['dashboard', 'gratitude', 'insights', 'chat', 'breathing', 'journal'];
 
   const handleNavigate = (page: string) => {
     if (protectedPages.includes(page) && !user) {
-      alert('Please sign up or sign in to access this feature!');
+      setCurrentPage('auth');
       return;
     }
     setCurrentPage(page);
@@ -46,18 +50,26 @@ function AppContent() {
         return <Resources />;
       case 'contact':
         return <Contact />;
+      case 'auth':
+        return <Auth onNavigate={handleNavigate} />;
       case 'dashboard':
-        return user ? <Dashboard onNavigate={handleNavigate} /> : <Home onNavigate={handleNavigate} />;
+        return user ? <Dashboard onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
       case 'gratitude':
-        return user ? <Gratitude onNavigate={handleNavigate} /> : <Home onNavigate={handleNavigate} />;
+        return user ? <Gratitude onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
       case 'insights':
-        return user ? <Insights onNavigate={handleNavigate} /> : <Home onNavigate={handleNavigate} />;
+        return user ? <Insights onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
+      case 'chat':
+        return user ? <AIChat onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
+      case 'breathing':
+        return user ? <BreathingExercise onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
+      case 'journal':
+        return user ? <Journal onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
       default:
         return <Home onNavigate={handleNavigate} />;
     }
   };
 
-  const showNavigation = !['dashboard', 'gratitude', 'insights'].includes(currentPage);
+  const showNavigation = !['dashboard', 'gratitude', 'insights', 'auth', 'chat', 'breathing', 'journal'].includes(currentPage);
 
   if (loading) {
     return (

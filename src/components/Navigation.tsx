@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Menu, X, Heart, Sparkles } from 'lucide-react';
+import { Menu, X, Heart, Sparkles, LogIn } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface NavigationProps {
   currentPage: string;
@@ -8,6 +9,7 @@ interface NavigationProps {
 
 export default function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   const navItems = [
     { id: 'home', label: 'Home' },
@@ -46,13 +48,32 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
                 {item.label}
               </button>
             ))}
-            <button
-              onClick={() => handleNavClick('dashboard')}
-              className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-full font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Get Started</span>
-            </button>
+            {user ? (
+              <button
+                onClick={() => handleNavClick('dashboard')}
+                className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-full font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Dashboard</span>
+              </button>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => handleNavClick('auth')}
+                  className="flex items-center space-x-2 px-5 py-2.5 text-teal-600 font-semibold hover:text-teal-700 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In</span>
+                </button>
+                <button
+                  onClick={() => handleNavClick('auth')}
+                  className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-full font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Sign Up</span>
+                </button>
+              </div>
+            )}
           </div>
 
           <button
@@ -80,13 +101,32 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
                 {item.label}
               </button>
             ))}
-            <button
-              onClick={() => handleNavClick('dashboard')}
-              className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-md font-medium mt-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Get Started</span>
-            </button>
+            {user ? (
+              <button
+                onClick={() => handleNavClick('dashboard')}
+                className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-md font-medium mt-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Dashboard</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleNavClick('auth')}
+                  className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-teal-600 border-2 border-teal-600 rounded-md font-medium mt-2"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In</span>
+                </button>
+                <button
+                  onClick={() => handleNavClick('auth')}
+                  className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-md font-medium"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Sign Up</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
