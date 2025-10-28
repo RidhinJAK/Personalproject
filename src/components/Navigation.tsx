@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Heart } from 'lucide-react';
+import { Menu, X, Heart, Sparkles } from 'lucide-react';
 
 interface NavigationProps {
   currentPage: string;
@@ -32,7 +32,7 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
             <span className="text-xl font-semibold text-gray-800">MindEase</span>
           </div>
 
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -46,6 +46,13 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
                 {item.label}
               </button>
             ))}
+            <button
+              onClick={() => handleNavClick('dashboard')}
+              className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-full font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Get Started</span>
+            </button>
           </div>
 
           <button
@@ -73,6 +80,13 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
                 {item.label}
               </button>
             ))}
+            <button
+              onClick={() => handleNavClick('dashboard')}
+              className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-md font-medium mt-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Get Started</span>
+            </button>
           </div>
         </div>
       )}
