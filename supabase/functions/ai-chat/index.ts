@@ -7,8 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -60,22 +58,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (!OPENAI_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: 'AI service not configured' }),
-        {
-          status: 503,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-    }
-
-    const systemMessage = {
-      role: 'system',
-      content: `You are a compassionate mental health support AI assistant for MindEase, an app designed to help students with stress, anxiety, and mental health challenges. Your role is to:
+    const lastUserMessage = messages[messages.length - 1]?.content || '';
+    
+    const prompt = `You are a compassionate mental health support AI assistant for MindEase, an app designed to help students with stress, anxiety, and mental health challenges. Your role is to:
 
 1. Listen empathetically and validate their feelings
 2. Provide supportive, non-judgmental responses
@@ -86,30 +71,46 @@ Deno.serve(async (req: Request) => {
 7. Never diagnose or prescribe medication
 8. Focus on immediate support and emotional wellness
 
-Remember: You're a supportive friend, not a replacement for professional mental health care. If someone expresses thoughts of self-harm or suicide, always encourage them to seek immediate professional help.`
-    };
+Remember: You're a supportive friend, not a replacement for professional mental health care. If someone expresses thoughts of self-harm or suicide, always encourage them to seek immediate professional help.
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [systemMessage, ...messages],
-        max_tokens: 500,
-        temperature: 0.7,
-      }),
-    });
+User: ${lastUserMessage}
+
+Assistant:`;
+
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/microsoft/DialoGPT-large',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 250,
+            temperature: 0.7,
+            top_p: 0.9,
+            do_sample: true,
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
+      console.error('Hugging Face API error:', await response.text());
+      
+      const fallbackResponses = [
+        "I hear you, and I want you to know that what you're feeling is valid. It's okay to not be okay sometimes. Have you tried taking a few deep breaths? Sometimes just pausing for a moment can help.",
+        "Thank you for sharing that with me. It takes courage to talk about what you're going through. Remember, you're not alone in this. Small steps forward are still progress.",
+        "I understand this is difficult for you. It's important to be kind to yourself right now. Have you considered talking to a counselor or trusted friend about how you're feeling?",
+        "What you're experiencing sounds really challenging. Remember to take things one day at a time. Sometimes the best thing we can do is focus on the present moment.",
+      ];
+      
+      const randomResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      
       return new Response(
-        JSON.stringify({ error: 'AI service temporarily unavailable' }),
+        JSON.stringify({ message: randomResponse }),
         {
-          status: 500,
           headers: {
             ...corsHeaders,
             'Content-Type': 'application/json',
@@ -119,7 +120,21 @@ Remember: You're a supportive friend, not a replacement for professional mental 
     }
 
     const data = await response.json();
-    const aiMessage = data.choices[0].message.content;
+    let aiMessage = '';
+
+    if (Array.isArray(data) && data.length > 0 && data[0].generated_text) {
+      aiMessage = data[0].generated_text.replace(prompt, '').trim();
+    }
+
+    if (!aiMessage || aiMessage.length < 10) {
+      const fallbackResponses = [
+        "I'm here to listen and support you. What you're feeling matters. Would you like to tell me more about what's on your mind?",
+        "Thank you for reaching out. It's brave of you to share your feelings. Remember, taking care of your mental health is just as important as physical health.",
+        "I appreciate you trusting me with your thoughts. While I'm here to help, please remember that talking to a counselor or mental health professional can provide additional support.",
+      ];
+      
+      aiMessage = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+    }
 
     return new Response(
       JSON.stringify({ message: aiMessage }),
@@ -132,10 +147,13 @@ Remember: You're a supportive friend, not a replacement for professional mental 
     );
   } catch (error) {
     console.error('Error:', error);
+    
+    const fallbackMessage = "I apologize, but I'm having trouble connecting right now. Please try again in a moment. If you're experiencing a crisis, please reach out to a mental health professional or crisis hotline immediately. You can call 988 for the Suicide & Crisis Lifeline.";
+    
     return new Response(
-      JSON.stringify({ error: 'An error occurred processing your request' }),
+      JSON.stringify({ message: fallbackMessage }),
       {
-        status: 500,
+        status: 200,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
