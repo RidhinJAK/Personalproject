@@ -15,6 +15,7 @@ import Auth from './pages/Auth';
 import AIChat from './pages/AIChat';
 import BreathingExercise from './pages/BreathingExercise';
 import Journal from './pages/Journal';
+import Profile from './pages/Profile';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -26,7 +27,7 @@ function AppContent() {
     }
   }, [user]);
 
-  const protectedPages = ['dashboard', 'gratitude', 'insights', 'chat', 'breathing', 'journal'];
+  const protectedPages = ['dashboard', 'gratitude', 'insights', 'chat', 'breathing', 'journal', 'profile'];
 
   const handleNavigate = (page: string) => {
     if (protectedPages.includes(page) && !user) {
@@ -64,12 +65,14 @@ function AppContent() {
         return user ? <BreathingExercise onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
       case 'journal':
         return user ? <Journal onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
+      case 'profile':
+        return user ? <Profile onNavigate={handleNavigate} /> : <Auth onNavigate={handleNavigate} />;
       default:
         return <Home onNavigate={handleNavigate} />;
     }
   };
 
-  const showNavigation = !['dashboard', 'gratitude', 'insights', 'auth', 'chat', 'breathing', 'journal'].includes(currentPage);
+  const showNavigation = !['dashboard', 'gratitude', 'insights', 'auth', 'chat', 'breathing', 'journal', 'profile'].includes(currentPage);
 
   if (loading) {
     return (

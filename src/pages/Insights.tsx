@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, Award, Calendar, Flame, Home, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import MoodChart from '../components/MoodChart';
 
 interface InsightsProps {
   onNavigate: (page: string) => void;
@@ -169,11 +170,19 @@ export default function Insights({ onNavigate }: InsightsProps) {
           </div>
         </div>
 
+        <div className="bg-white rounded-3xl shadow-xl p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <TrendingUp className="w-7 h-7 mr-3 text-violet-600" />
+            Your Mood Journey
+          </h2>
+          <MoodChart data={moodData.map(m => ({ date: m.date, mood_level: m.mood_level }))} />
+        </div>
+
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
           <div className="bg-white rounded-3xl shadow-xl p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
               <Calendar className="w-7 h-7 mr-3 text-violet-600" />
-              30-Day Mood Overview
+              Recent Mood Entries
             </h2>
             <div className="space-y-3">
               {moodData.slice(0, 10).map((data, index) => (

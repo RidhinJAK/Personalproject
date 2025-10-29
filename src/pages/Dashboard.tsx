@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, BookOpen, Wind, MessageCircle, LogOut, Sparkles, TrendingUp, Heart, Award } from 'lucide-react';
+import { BarChart3, BookOpen, Wind, MessageCircle, LogOut, Sparkles, TrendingUp, Heart, Award, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { checkAndUnlockAchievements } from '../utils/achievements';
+import WellnessTip from '../components/WellnessTip';
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -46,6 +48,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [dailyQuote] = useState(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [newAchievement, setNewAchievement] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -156,6 +159,35 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       setMoodNotes('');
       loadMoodEntries();
       updateStreak();
+      checkAchievements();
+    }
+  };
+
+  const checkAchievements = async () => {
+    if (!user) return;
+
+    const [moodRes, journalRes, gratitudeRes, streakRes, chatRes] = await Promise.all([
+      supabase.from('mood_entries').select('id').eq('user_id', user.id),
+      supabase.from('journal_entries').select('id').eq('user_id', user.id),
+      supabase.from('gratitude_entries').select('id').eq('user_id', user.id),
+      supabase.from('user_streaks').select('*').eq('user_id', user.id).maybeSingle(),
+      supabase.from('chat_messages').select('id').eq('user_id', user.id)
+    ]);
+
+    const stats = {
+      moodLogs: moodRes.data?.length || 0,
+      journalEntries: journalRes.data?.length || 0,
+      gratitudeEntries: gratitudeRes.data?.length || 0,
+      currentStreak: streakRes.data?.current_streak || 0,
+      longestStreak: streakRes.data?.longest_streak || 0,
+      chatMessages: chatRes.data?.length || 0
+    };
+
+    const newAchievements = await checkAndUnlockAchievements(user.id, stats);
+
+    if (newAchievements.length > 0) {
+      setNewAchievement(newAchievements[0].badge_name);
+      setTimeout(() => setNewAchievement(null), 5000);
     }
   };
 
@@ -185,6 +217,18 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+        {newAchievement && (
+          <div className="fixed top-24 right-6 z-50 bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-6 py-4 rounded-2xl shadow-2xl animate-bounce">
+            <div className="flex items-center space-x-3">
+              <Award className="w-8 h-8" />
+              <div>
+                <p className="font-bold text-lg">Achievement Unlocked!</p>
+                <p className="text-sm">{newAchievement}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -200,14 +244,25 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               )}
             </p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center space-x-2 px-4 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-all text-gray-700 hover:text-gray-900"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Sign Out</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => onNavigate('profile')}
+              className="flex items-center space-x-2 px-4 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-all text-gray-700 hover:text-gray-900"
+            >
+              <Settings className="w-5 h-5" />
+              <span>Profile</span>
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center space-x-2 px-4 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-all text-gray-700 hover:text-gray-900"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
+
+        <WellnessTip />
 
         <div className="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-3xl shadow-xl p-8 mb-8 relative overflow-hidden">
           <Sparkles className="absolute top-4 right-4 w-8 h-8 text-white opacity-50" />

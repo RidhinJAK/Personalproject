@@ -29,6 +29,23 @@ export default function Contact() {
 
       if (error) throw error;
 
+      try {
+        const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact-email`;
+        await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            message: formData.message
+          })
+        });
+      } catch (emailError) {
+        console.log('Email notification failed, but feedback saved:', emailError);
+      }
+
       setSubmitStatus('success');
       setFormData({ name: '', email: '', message: '' });
     } catch (error) {
@@ -100,10 +117,10 @@ export default function Contact() {
                       For urgent matters or detailed inquiries:
                     </p>
                     <a
-                      href="mailto:contact@mindease.example"
+                      href="mailto:ridhin.jasti@gmail.com"
                       className="text-teal-600 hover:text-teal-700 font-medium"
                     >
-                      contact@mindease.example
+                      ridhin.jasti@gmail.com
                     </a>
                   </div>
                 </div>
