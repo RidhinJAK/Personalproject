@@ -32,21 +32,21 @@ export default function Auth({ onNavigate }: AuthProps) {
           setLoading(false);
           return;
         }
-
         if (formData.password.length < 6) {
           setError('Password must be at least 6 characters');
           setLoading(false);
           return;
         }
-
         if (!formData.displayName.trim()) {
           setError('Please enter your name');
           setLoading(false);
           return;
         }
-
         await signUp(formData.email, formData.password, formData.displayName);
-        onNavigate('dashboard');
+        setIsSignUp(false); // Switch to sign-in after signup
+        setError('Account created successfully! Please sign in.');
+        setLoading(false);
+        return;
       } else {
         await signIn(formData.email, formData.password);
         onNavigate('dashboard');
@@ -77,7 +77,6 @@ export default function Auth({ onNavigate }: AuthProps) {
         <div className="absolute top-40 right-10 w-96 h-96 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
-
       <div className="max-w-md w-full relative">
         <button
           onClick={() => onNavigate('home')}
@@ -86,7 +85,6 @@ export default function Auth({ onNavigate }: AuthProps) {
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <span>Back to Home</span>
         </button>
-
         <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10">
           <div className="flex justify-center mb-6">
             <div className="relative">
@@ -94,7 +92,6 @@ export default function Auth({ onNavigate }: AuthProps) {
               <Sparkles className="w-6 h-6 text-cyan-500 absolute -top-1 -right-1" />
             </div>
           </div>
-
           <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
             {isSignUp ? 'Join MindEase' : 'Welcome Back'}
           </h1>
@@ -103,13 +100,11 @@ export default function Auth({ onNavigate }: AuthProps) {
               ? 'Start your journey to better mental health'
               : 'Continue your wellness journey'}
           </p>
-
           {error && (
             <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
               <p className="text-red-700 text-sm text-center">{error}</p>
             </div>
           )}
-
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignUp && (
               <div>
@@ -133,7 +128,6 @@ export default function Auth({ onNavigate }: AuthProps) {
                 </div>
               </div>
             )}
-
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
@@ -154,7 +148,6 @@ export default function Auth({ onNavigate }: AuthProps) {
                 />
               </div>
             </div>
-
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -186,7 +179,6 @@ export default function Auth({ onNavigate }: AuthProps) {
                 </button>
               </div>
             </div>
-
             {isSignUp && (
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
@@ -220,7 +212,6 @@ export default function Auth({ onNavigate }: AuthProps) {
                 </div>
               </div>
             )}
-
             <button
               type="submit"
               disabled={loading}
@@ -236,7 +227,6 @@ export default function Auth({ onNavigate }: AuthProps) {
               )}
             </button>
           </form>
-
           <div className="mt-8 text-center">
             <button
               onClick={() => {
@@ -257,7 +247,6 @@ export default function Auth({ onNavigate }: AuthProps) {
             </button>
           </div>
         </div>
-
         {isSignUp && (
           <div className="mt-6 text-center text-sm text-gray-600 bg-white rounded-2xl p-4 shadow-lg">
             <p>By signing up, you agree to our commitment to your privacy and data security.</p>
