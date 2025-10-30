@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Send, Home, Sparkles, Bot, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { getLocalAIResponse } from '../services/localAI';
+
 
 interface AIChatProps {
   onNavigate: (page: string) => void;
@@ -89,7 +89,22 @@ export default function AIChat({ onNavigate }: AIChatProps) {
         .slice(-10)
         .map(m => ({ role: m.role, content: m.content }));
 
-      const localResponse = getLocalAIResponse(conversationHistory);
+     const response = await fetch('http://127.0.0.1:11434/api/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    model: 'phi3', // make sure this model exists in Ollama
+    prompt: conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')
+  })
+});
+
+if (!response.ok) {
+  throw new Error(`Ollama request failed: ${response.statusText}`);
+}
+
+const data = await response.json();
+const localResponse = data.response || "Sorry, I couldn’t think of anything to say.";
+
 
       const assistantMsg = await saveMessage('assistant', localResponse);
       if (assistantMsg) {
