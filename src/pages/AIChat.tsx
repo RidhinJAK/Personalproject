@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Send, Home, Sparkles, Bot, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { getLocalAIResponse } from '../services/localAI';
 
 interface AIChatProps {
   onNavigate: (page: string) => void;
@@ -84,35 +85,20 @@ export default function AIChat({ onNavigate }: AIChatProps) {
     }
 
     try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
-
-      const conversationHistory = [...messages, { role: 'user', content: userMessage }]
+      const conversationHistory = [...messages, { role: 'user' as const, content: userMessage }]
         .slice(-10)
         .map(m => ({ role: m.role, content: m.content }));
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages: conversationHistory })
-      });
+      const localResponse = getLocalAIResponse(conversationHistory);
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
-      const data = await response.json();
-
-      const assistantMsg = await saveMessage('assistant', data.message);
+      const assistantMsg = await saveMessage('assistant', localResponse);
       if (assistantMsg) {
         setMessages(prev => [...prev, assistantMsg]);
       }
     } catch (error) {
       console.error('Chat error:', error);
 
-      const fallbackMessage = "I apologize, but I'm having trouble connecting right now. Please try again in a moment. If you're experiencing a crisis, please reach out to a mental health professional or crisis hotline immediately.";
+      const fallbackMessage = "I'm here to support you. What's on your mind today?";
       const assistantMsg = await saveMessage('assistant', fallbackMessage);
       if (assistantMsg) {
         setMessages(prev => [...prev, assistantMsg]);
