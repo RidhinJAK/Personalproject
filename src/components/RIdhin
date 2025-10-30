@@ -1,0 +1,10 @@
+
+async function handleSubmit() {
+  try {
+    const result = await callOllama(userPrompt);
+    setAnswer(result);
+  } catch (err) {
+    console.error(err);
+    setAnswer("Error: " + err.message);
+  }
+}
