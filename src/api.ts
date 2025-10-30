@@ -13,6 +13,18 @@ export async function callOllama(prompt: string) {
     throw new Error(`Ollama error: ${response.status} ${text}`);
   }
 
-  const text = await response.text();
-  return text;
+  // Ollama streams responses line by line, so handle it properly
+  const reader = response.body?.getReader();
+  let fullText = "";
+
+  if (reader) {
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      fullText += decoder.decode(value);
+    }
+  }
+
+  return fullText;
 }
